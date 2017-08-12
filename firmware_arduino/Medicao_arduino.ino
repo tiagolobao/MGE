@@ -1,5 +1,5 @@
  #include <EmonLib.h>                                  // inclue a biblioteca que calcula a tensão
-
+//Pelo github
 EnergyMonitor emon1;                                   // Cria uma instancia
 
 float dados[5];
