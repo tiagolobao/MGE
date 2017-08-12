@@ -1,5 +1,5 @@
  #include <EmonLib.h>                                  // inclue a biblioteca que calcula a tensão
-
+//Pelo local
 EnergyMonitor emon1;                                   // Cria uma instancia
 
 float dados[5];
@@ -23,9 +23,7 @@ void loop() {
   dados[4] = 3*emon1.Irms;         //recebe Corrente rms
   while (i < 5) {
     Serial.print('A');
-    Serial.print(dados[i]); 
+    Serial.print(dados[i]);
     i++;
   }
 }
-
-
