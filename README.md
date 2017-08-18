@@ -4,6 +4,9 @@
 <h3>Arduino - Leitura analógica </h3>
 <h3> ESP - Comunicação web </h3>
 
+<h3> Dependencias: </h3>
+- Biblioteca EnergyMonitor (Arduino)
+- Gerenciador de Placa Node ESP12 para Arduino IDE
 
 <h3>Equipe:</h3>
 

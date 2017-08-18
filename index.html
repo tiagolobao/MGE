@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+  <script>
+  var xmlHttp=createXmlHttpObject();
+
+  function createXmlHttpObject(){
+   if(window.XMLHttpRequest){
+      xmlHttp=new XMLHttpRequest();
+   }else{
+      xmlHttp=new ActiveXObject('Microsoft.XMLHTTP');
+   }
+   return xmlHttp;
+  }
+
+  function process(){
+   if(xmlHttp.readyState==0 || xmlHttp.readyState==4){
+     xmlHttp.open('PUT','xml',true);
+     xmlHttp.onreadystatechange=handleServerResponse;
+     xmlHttp.send(null);
+   }
+   setTimeout('process()',1000);
+  }
+
+  function handleServerResponse(){
+   if(xmlHttp.readyState==4 && xmlHttp.status==200){
+     xmlResponse = xmlHttp.responseXML;
+     xmldoc = xmlResponse.getElementsByTagName('response');
+     message = xmldoc[0].firstChild.nodeValue;
+     document.getElementById('runtime').innerHTML=message;
+   }
+  }
+  </script>
+
+
+  </head>
+
+  <body onload='process()'>
+  <br>This is the ESP website ...<br>
+  Runtime = <a id='runtime'></a>
+  <div id="sketch-holder" align="center">
+     <!-- Our sketch will go here! -->
+  </div>
+  </body>
+
+  <script src="https:////cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.8/p5.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+			  integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
+			  crossorigin="anonymous"></script>
+
+
+  <script>
+
+//Valor máximo de x
+var tMax = 800;
+//Tempo de amostragem
+var T = 1;
+//Frequencia
+var f = 0.004;
+//Amplitude
+var A = 100;
+//Fase inicial
+var k = 0;
+//Velocidade da onda
+var step = 0.05;
+//Variável tempo
+var t = 0;
+//Variável y
+var y = [];
+
+
+
+
+function setup() {
+
+// Create the canvas
+var canvas = createCanvas(800, 400);
+canvas.parent('sketch-holder');
+
+background(255, 0, 200);
+// Set colors
+fill(204, 101, 192, 127);
+stroke(127, 63, 120);
+
+// Set Thickness
+strokeWeight(3);
+
+
+
+frameRate(30);
+for(t=0;t<=tMax;t+=T){
+  y[t]=A*sin(2*PI*f*t);
+  point(t,y[t]+200);
+}
+}
+
+function draw(){
+
+background(10);
+//Frequencia 1
+for(t=0;t<=tMax;t+=T){
+  y[t]=A*sin(2*PI*f*t+k);
+  //point(t,y[t]+200);
+}
+// O triplo dessa frequencia
+for(t=0;t<=tMax;t+=T){
+  y[t]+=A/4*sin(10*(2*PI*f*t+k));
+  //point(t,y[t]+200);
+  line(t-1,y[t-1]+200 , t,y[t]+200);
+}
+
+k = k + step;
+}
+
+
+  </script>
+
+
+</html>
