@@ -4,9 +4,20 @@
 
   <head>
 
-  <script>
-  var xmlHttp=createXmlHttpObject();
+  <meta name="viewport" content="width=device-width, user-scalable=no">
 
+  <script>
+
+  /* Informações Medidas  */
+  //Fator de potência
+  var FP = 0.9;
+  //Amplitude Tensão
+  var Av = 127;
+  //Amplitude Corrente
+  var Ai = 1;
+
+  /* AJAX */
+  var xmlHttp=createXmlHttpObject();
   function createXmlHttpObject(){
    if(window.XMLHttpRequest){
       xmlHttp=new XMLHttpRequest();
@@ -28,95 +39,198 @@
   function handleServerResponse(){
    if(xmlHttp.readyState==4 && xmlHttp.status==200){
      xmlResponse = xmlHttp.responseXML;
-     xmldoc = xmlResponse.getElementsByTagName('response');
-     message = xmldoc[0].firstChild.nodeValue;
-     document.getElementById('runtime').innerHTML=message;
+     xmldoc = xmlResponse.getElementsByTagName('Av');
+     Av = xmldoc[0].firstChild.nodeValue;
+     xmldoc = xmlResponse.getElementsByTagName('Ai');
+     Ai = xmldoc[0].firstChild.nodeValue;
+     xmldoc = xmlResponse.getElementsByTagName('FP');
+     FP = xmldoc[0].firstChild.nodeValue;
+     document.getElementById('v').innerHTML = Av;
+     document.getElementById('i').innerHTML = Ai;
+     document.getElementById('fp').innerHTML = FP;
+
+     xmldoc = xmlResponse.getElementsByTagName('w');
+     document.getElementById('w').innerHTML = xmldoc[0].firstChild.nodeValue;
+
    }
   }
   </script>
+
+  <style>
+
+    canvas{
+      border-radius: 30%;
+    }
+
+    html{
+      background: white;
+      font-family: monospace;
+    }
+    .title{
+      margin: 3% 10%;
+      font-size: 40px;
+      color: white;
+      background-color: #53605b;
+      border-style: dashed;
+      border-color: white;
+      border-width: 10px;
+      border-radius: 20px;
+           box-shadow: 10px 10px;
+      -webkit-box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+      -moz-box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+      box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+    }
+
+    .values{
+      color: white;
+      font-style: oblique;
+      font-size: 20px;
+      border-spacing: 20px;
+      text-align: left;
+    }
+
+    .osciloscope{
+      background: #53605b;
+      max-width: 70%;
+      margin: 0 auto;
+      border-radius: 30px;
+      border-color: #53605b;
+      border-style: solid;
+      border-width: 30px;
+      box-shadow: 10px 10px;
+      -webkit-box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+      -moz-box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+      box-shadow: 12px 13px 25px 3px rgba(0,0,0,0.51);
+    }
+
+    #ten{
+      color:rgb(46, 178, 70);
+    }
+
+    #cor{
+      color:rgb(244, 66, 66);
+    }
+
+    #team{
+      color:#53605b;
+
+    }
+
+  </style>
 
 
   </head>
 
   <body onload='process()'>
-  <br>This is the ESP website ...<br>
-  Runtime = <a id='runtime'></a>
-  <div id="sketch-holder" align="center">
-     <!-- Our sketch will go here! -->
+    <div align="center" class="title"> Medicao de grandezas eletricas </div>
+
+    <div class="osciloscope">
+      <table class="values" align="center">
+        <tr>
+          <td id="ten"> Tensao: <a id="v">0</a> V </td>
+          <td id="cor"> Corrente: <a id="i">0</a> A </td>
+        </tr>
+        <tr>
+          <td> Potencia: <a id="w">0</a> W </td>
+          <td> Fator de Pot: <a id="fp">0</a> </td>
+        </tr>
+      </table>
+
+    <table align="center">
+      <tr>
+        <td id="sketch-holder"></td>
+      </tr>
+    </table>
   </div>
-  </body>
+  <br><br>
+    <div id="team" align="center">
+      Equipe: <br>
+      Tiago Lobao,
+      Lucas Menezes,
+      Ryan Teixeira,
+      Flavia Bacelar.
+    </div>
 
   <script src="https:////cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.8/p5.js"></script>
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-			  integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
-			  crossorigin="anonymous"></script>
 
 
   <script>
 
+/* Ajuste na tela */
+
+//Offset
+var offset = 0;
 //Valor máximo de x
-var tMax = 800;
+var tMax = 0;
 //Tempo de amostragem
 var T = 1;
 //Frequencia
-var f = 0.004;
-//Amplitude
-var A = 100;
+var f = 0.007;
 //Fase inicial
 var k = 0;
 //Velocidade da onda
 var step = 0.05;
 //Variável tempo
 var t = 0;
-//Variável y
-var y = [];
+//Array de Tensão
+var V = [];
+//Array de Corrente
+var I = [];
 
 
-
+var padding = 10;
 
 function setup() {
+  pixelDensity(1);
+  tMax = (windowWidth/2);
+  // Create the canvas
+  var canvas = createCanvas((windowWidth/2), (windowHeight/3));
+  canvas.parent('sketch-holder');
+  offset = canvas.height/2;
 
-// Create the canvas
-var canvas = createCanvas(800, 400);
-canvas.parent('sketch-holder');
+  background(255, 0, 200);
+  // Set colors
+  fill(204, 101, 192, 127);
 
-background(255, 0, 200);
-// Set colors
-fill(204, 101, 192, 127);
-stroke(127, 63, 120);
+  // Set Thickness
+  strokeWeight(3);
+  frameRate(30);
 
-// Set Thickness
-strokeWeight(3);
-
-
-
-frameRate(30);
-for(t=0;t<=tMax;t+=T){
-  y[t]=A*sin(2*PI*f*t);
-  point(t,y[t]+200);
-}
 }
 
 function draw(){
+  background(255);
+  //Desenhando tensão
+  stroke(46, 178, 70);
+  for(t=0;t<=tMax;t+=T){
+    V[t]=adjustAmp(Av,0.0021)*sin(2*PI*f*t+k);
+    line(t-1,V[t-1]+offset , t,V[t]+offset);
+  }
+  //Desenhando Corrente
+  stroke(244, 66, 66);
+  for(t=0;t<=tMax;t+=T){
+    I[t]=adjustAmp(Ai,0.3)*sin(2*PI*f*t+k+((1-FP)*3.1));
+    line(t-1,I[t-1]+offset , t,I[t]+offset);
+  }
+  //Desenhando o grid
+  for(var i=0; i<tMax; i++){
 
-background(10);
-//Frequencia 1
-for(t=0;t<=tMax;t+=T){
-  y[t]=A*sin(2*PI*f*t+k);
-  //point(t,y[t]+200);
+  }
+  k = k + step;
 }
-// O triplo dessa frequencia
-for(t=0;t<=tMax;t+=T){
-  y[t]+=A/4*sin(10*(2*PI*f*t+k));
-  //point(t,y[t]+200);
-  line(t-1,y[t-1]+200 , t,y[t]+200);
+
+function windowResized() {
+  resizeCanvas((windowWidth/2), (windowHeight/3));
+  tMax = (windowWidth/2);
+  offset = canvas.height/2;
 }
 
-k = k + step;
+function adjustAmp(input,max){
+  var output = 0;
+  output = (max*canvas.height)*input;
+  return output;
 }
-
-
   </script>
 
-
+ </body>
 </html>

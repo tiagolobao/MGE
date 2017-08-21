@@ -3,8 +3,21 @@
 
 ESP8266WebServer server(80);
 const char* ssid="Troco_senha_por_XBOX";
-const char* password="18M14T/0502,9094";
+const char* password="senha";
 String html,XML;
+float data[5];
+
+void getData(){
+  if(Serial.available()){
+    for(int i=0; i<4; i++){
+      data[i]=Serial.parseFloat();
+    }
+    for(int i=0; i<4; i++){
+      Serial.println(data[i]);
+    }
+    Serial.flush();
+  }
+}
 
 
 String millis2time(){
@@ -35,7 +48,7 @@ void handleXML(){
 }
 
 void setup() {
-  Serial.begin(115200); 
+  Serial.begin(115200);
   WiFi.begin(ssid,password);
   while(WiFi.status()!=WL_CONNECTED)delay(500);
   WiFi.mode(WIFI_STA);
@@ -46,9 +59,10 @@ void setup() {
   Serial.println(WiFi.localIP());
   server.on("/",handleWebsite);
   server.on("/xml",handleXML);
-  server.begin(); 
+  server.begin();
 }
 
 void loop() {
   server.handleClient();
+  getData();
 }
