@@ -27,23 +27,24 @@ float defasagem = 0; //Variável para calculo da defasagem tensão/corrente
 void setup() {
 
 pinMode(A0,INPUT);
-pinMode(A2,OUTPUT);
-Vaux = digitalRead(A0);
-Iaux = digitalRead(A2);
+pinMode(A2,INPUT);
 delay(1);
-if (digitalRead(A0)>Vaux){
+//Serial.begin(9600)  Caso Queiram conferir algo no serial monitor. NAO USEM NO CODIGO FINAL, SO VAI DEIXAR MAIS LENTO
+Vaux = analogRead(A0);
+Iaux = analogRead(A2);
+if (analogRead(A0)>Vaux){
   estadoV = 0;
   }
   else{
-    if (digitalRead(A0)>Vaux){
+    if (analogRead(A0)>Vaux){
   estadoV = 1;
   }
   }
- if (digitalRead(A2)>Iaux){
+ if (analogRead(A2)>Iaux){
  estadoI = 0;
  }
   else{
-    if (digitalRead(A2)<Iaux){
+    if (analogRead(A2)<Iaux){
     estadoI = 1;
     }
   }
@@ -51,8 +52,12 @@ if (digitalRead(A0)>Vaux){
 
 void loop() {
 
-Vaux = digitalRead(A0);
-Iaux = digitalRead(A2);
+Vaux = analogRead(A0);
+Iaux = analogRead(A2);
+Vaux = Vaux*(5.0/1024.0) // Aplicação do fator de escala, vai ser sempre X/1024, onde 1024 vai ser a leitura maxima do arduino, 5Volts,
+                         // E o numerador Deve ser o valor DE PICO! real da amostra de calibração que estamos medindo que deverá gerar 5 Volts pro arduino.
+Iaux = Iaux*(5.0/1024.0) // Lembrem SEMPRE de por um ".0" após o numero se ele for inteiro, pra evitar Bugs de divisão.
+
   //As duas medições ja foram feitas, logo, embora não simultâneas, já temos elas feitas os mais próximo possível uma da outra.
   //O tratamento dos valores da tensão começa aqui
   if(estadoV == 0){
@@ -62,8 +67,9 @@ Iaux = digitalRead(A2);
     else{
     if(Vaux<Vp){
     V = Vp/1.4142;
-    Vp = 0;
-    //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA TENSAO (V) PRO ESP;
+    Vp = Vaux;
+    //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA TENSAO (V) PRO ESP ||||||||||||||||
+    // //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A TENSAO NO SERIAL MONITOR
        if (contV==1){
         tempoV1 = micros();
         }
@@ -72,7 +78,8 @@ Iaux = digitalRead(A2);
         TV = (tempoV2-tempoV1);
         TV = abs(TV);
         FV = 1000000.0/TV;
-        //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA FREQUENCIA (FV) PRO ESP
+        //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA FREQUENCIA (FV) PRO ESP |||||||||||||||||||||||||
+        //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A FREQUENCIA NO SERIAL MONITOR
         contV = 0;
         }
       contV=contV+1;
@@ -102,7 +109,8 @@ Iaux = digitalRead(A2);
     if(Iaux<Ip){
     I = Ip/1.4142;
     Ip = 0;
-    //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA CORRENTE (I) PRO ESP;
+    //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA CORRENTE (I) PRO ESP||||||||||||||||||||||||
+     //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A CORRENTE NO SERIAL MONITOR
        if (contI==1){
         tempoI1 = micros();
         }
@@ -111,7 +119,8 @@ Iaux = digitalRead(A2);
         TI = (tempoI2 - tempoI1);
         TI = abs(TI);
         FI = 1000000.0/TI;
-        //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA FREQUENCIA (FI) PRO ESP
+        //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA FREQUENCIA (FI) PRO ESP||||||||||||||||||
+        //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A FREQUENCIA NO SERIAL MONITOR
         contI = 0;
         }
       contI=contI+1;
@@ -142,6 +151,7 @@ S = V*I;
 P = S*Fpot;
 Q = S*FpotR;
 //ENVIA AQUI OS VALORES DE FPOT,FPOTR, S,P e Q PRO ESP.
+//INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER QUALQUER UMA DESSAS GRANDEZAS NO SERIAL MONITOR
 }
 }
 //CABOU CÓDIGO, UFA!
