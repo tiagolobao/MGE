@@ -1,4 +1,12 @@
-#include <Math.h>
+// Generally, you should use "unsigned long" for variables that hold time
+// The value will quickly become too large for an int to store
+unsigned long previousMillis = 0;        // will store last time LED was updated
+
+// constants won't change :
+const long interval = 1000;           // interval at which to blink (milliseconds)
+
+
+//#include <Math.h>
 unsigned long tempoV1=0;  //Tempos que irão mexer diretamente com os timers, por isso tem que ser do tipo unsigned. V referente a tensão, I referente a corrente.
 unsigned long tempoV2=0;
 unsigned long tempoI1=0;
@@ -29,18 +37,18 @@ void setup() {
 pinMode(A0,INPUT);
 pinMode(A2,INPUT);
 delay(1);
-//Serial.begin(9600)  Caso Queiram conferir algo no serial monitor. NAO USEM NO CODIGO FINAL, SO VAI DEIXAR MAIS LENTO
+Serial.begin(115200);  //Caso Queiram conferir algo no serial monitor. NAO USEM NO CODIGO FINAL, SO VAI DEIXAR MAIS LENTO
 Vaux = analogRead(A0);
 Iaux = analogRead(A2);
 if (analogRead(A0)>Vaux){
   estadoV = 0;
   }
   else{
-    if (analogRead(A0)>Vaux){
+    if (analogRead(A0)<Vaux){
   estadoV = 1;
   }
   }
- if (analogRead(A2)>Iaux){
+if (analogRead(A2)>Iaux){
  estadoI = 0;
  }
   else{
@@ -51,12 +59,12 @@ if (analogRead(A0)>Vaux){
 }
 
 void loop() {
-
+unsigned long currentMillis = millis();
 Vaux = analogRead(A0);
 Iaux = analogRead(A2);
-Vaux = Vaux*(5.0/1024.0) // Aplicação do fator de escala, vai ser sempre X/1024, onde 1024 vai ser a leitura maxima do arduino, 5Volts,
+Vaux = Vaux*(204.5/1024.0); // Aplicação do fator de escala, vai ser sempre X/1024, onde 1024 vai ser a leitura maxima do arduino, 5Volts,
                          // E o numerador Deve ser o valor DE PICO! real da amostra de calibração que estamos medindo que deverá gerar 5 Volts pro arduino.
-Iaux = Iaux*(5.0/1024.0) // Lembrem SEMPRE de por um ".0" após o numero se ele for inteiro, pra evitar Bugs de divisão.
+Iaux = Iaux*(204.5/1024.0); // Lembrem SEMPRE de por um ".0" após o numero se ele for inteiro, pra evitar Bugs de divisão.
 
   //As duas medições ja foram feitas, logo, embora não simultâneas, já temos elas feitas os mais próximo possível uma da outra.
   //O tratamento dos valores da tensão começa aqui
@@ -70,6 +78,11 @@ Iaux = Iaux*(5.0/1024.0) // Lembrem SEMPRE de por um ".0" após o numero se ele 
     Vp = Vaux;
     //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA TENSAO (V) PRO ESP ||||||||||||||||
     // //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A TENSAO NO SERIAL MONITOR
+    if (currentMillis - previousMillis >= interval) {
+      Serial.print('F');
+      Serial.print(Vp);
+      Serial.print(" ");
+    }
        if (contV==1){
         tempoV1 = micros();
         }
@@ -110,7 +123,11 @@ Iaux = Iaux*(5.0/1024.0) // Lembrem SEMPRE de por um ".0" após o numero se ele 
     I = Ip/1.4142;
     Ip = 0;
     //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA CORRENTE (I) PRO ESP||||||||||||||||||||||||
-     //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A CORRENTE NO SERIAL MONITOR
+    //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A CORRENTE NO SERIAL MONITOR
+    if (currentMillis - previousMillis >= interval) {
+      Serial.print(Ip);
+      Serial.print(" ");
+    }
        if (contI==1){
         tempoI1 = micros();
         }
@@ -152,6 +169,11 @@ P = S*Fpot;
 Q = S*FpotR;
 //ENVIA AQUI OS VALORES DE FPOT,FPOTR, S,P e Q PRO ESP.
 //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER QUALQUER UMA DESSAS GRANDEZAS NO SERIAL MONITOR
+if (currentMillis - previousMillis >= interval) {
+  previousMillis = currentMillis;
+  Serial.print(P);
+  Serial.print(" ");
+}
 }
 }
 //CABOU CÓDIGO, UFA!

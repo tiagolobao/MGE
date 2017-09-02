@@ -9,6 +9,7 @@ float data[5];
 
 void getData(){
   if(Serial.available()){
+    while(Serial.read() != 'F');
     for(int i=0; i<4; i++){
       data[i]=Serial.parseFloat();
     }
