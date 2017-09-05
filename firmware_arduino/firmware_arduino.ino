@@ -15,8 +15,10 @@ float V = 0; //Tensão e corrente em valores eficazes
 float I = 0;
 float Vp = 0; //Tensão e correntes de pico
 float Ip = 0;
-float Vaux = 0; //Variáveis auxiliares para determinação da tensão e corrente de pico
-float Iaux = 0;
+int Vaux1 = 0; //Variáveis auxiliares para determinação da tensão e corrente de pico
+int Iaux1 = 0;
+float Vaux=0;
+float Iaux=0;
 float FV = 0; //Frequências da corrente e tensão. Devem dar muito próximas ou algo de errado não esta certo.
 float FI = 0;
 int contV = 1; //Contadores pra determinar picos diferentes;
@@ -28,43 +30,46 @@ double FpotR = 0;//Fator de potência reativa
 float S = 0; //Potência Aparente
 float P = 0; //Potência Ativa
 float Q = 0; //Potência Reativa
-float TV = 1; //Períodos referentes a tensão e corrente. Devem dar muito próximos ou algo de errado não está certo
-float TI = 1;
+unsigned TV = 1; //Períodos referentes a tensão e corrente. Devem dar muito próximos ou algo de errado não está certo
+unsigned TI = 1;
 float defasagem = 0; //Variável para calculo da defasagem tensão/corrente
 
 void setup() {
 
 pinMode(A0,INPUT);
 pinMode(A2,INPUT);
+Serial.begin(115200); 
+Vaux1 = analogRead(A0);
+Iaux1 = analogRead(A2);
 delay(1);
-Serial.begin(115200);  //Caso Queiram conferir algo no serial monitor. NAO USEM NO CODIGO FINAL, SO VAI DEIXAR MAIS LENTO
-Vaux = analogRead(A0);
-Iaux = analogRead(A2);
-if (analogRead(A0)>Vaux){
+if (analogRead(A0)>Vaux1){
   estadoV = 0;
   }
   else{
-    if (analogRead(A0)<Vaux){
+    if (analogRead(A0)<Vaux1){
   estadoV = 1;
   }
   }
-if (analogRead(A2)>Iaux){
+if (analogRead(A2)>Iaux1){
  estadoI = 0;
  }
   else{
-    if (analogRead(A2)<Iaux){
+    if (analogRead(A2)<Iaux1){
     estadoI = 1;
     }
   }
 }
 
 void loop() {
+delayMicroseconds(10);
 unsigned long currentMillis = millis();
-Vaux = analogRead(A0);
-Iaux = analogRead(A2);
-Vaux = Vaux*(204.5/1024.0); // Aplicação do fator de escala, vai ser sempre X/1024, onde 1024 vai ser a leitura maxima do arduino, 5Volts,
-                         // E o numerador Deve ser o valor DE PICO! real da amostra de calibração que estamos medindo que deverá gerar 5 Volts pro arduino.
-Iaux = Iaux*(204.5/1024.0); // Lembrem SEMPRE de por um ".0" após o numero se ele for inteiro, pra evitar Bugs de divisão.
+Vaux1 = analogRead(A0);
+Iaux1 = analogRead(A2);
+Vaux = Vaux1*(5.0/1024.0);
+Iaux = Iaux1*(5.0/1024.0);
+ // Aplicação do fator de escala, vai ser sempre X/1024, onde 1024 vai ser a leitura maxima do arduino, 5Volts,
+                              // E o numerador Deve ser o valor DE PICO! real da amostra de calibração que estamos medindo que deverá gerar 5 Volts pro arduino.
+// Lembrem SEMPRE de por um ".0" após o numero se ele for inteiro, pra evitar Bugs de divisão.
 
   //As duas medições ja foram feitas, logo, embora não simultâneas, já temos elas feitas os mais próximo possível uma da outra.
   //O tratamento dos valores da tensão começa aqui
@@ -74,14 +79,15 @@ Iaux = Iaux*(204.5/1024.0); // Lembrem SEMPRE de por um ".0" após o numero se e
     }
     else{
     if(Vaux<Vp){
+    Vp = Vp - 2.42;
+    Vp = Vp*(311.42/2.42);  
     V = Vp/1.4142;
     Vp = Vaux;
     //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA TENSAO (V) PRO ESP ||||||||||||||||
     // //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A TENSAO NO SERIAL MONITOR
     if (currentMillis - previousMillis >= interval) {
-      Serial.print('F');
-      Serial.print(Vp);
-      Serial.print(" ");
+      
+
     }
        if (contV==1){
         tempoV1 = micros();
@@ -120,14 +126,12 @@ Iaux = Iaux*(204.5/1024.0); // Lembrem SEMPRE de por um ".0" após o numero se e
     }
     else{
     if(Iaux<Ip){
+    Ip = Ip - 2.16;
+    Ip = Ip*(7.07/2.16);
     I = Ip/1.4142;
-    Ip = 0;
+    Ip = Iaux;
     //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA CORRENTE (I) PRO ESP||||||||||||||||||||||||
     //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A CORRENTE NO SERIAL MONITOR
-    if (currentMillis - previousMillis >= interval) {
-      Serial.print(Ip);
-      Serial.print(" ");
-    }
        if (contI==1){
         tempoI1 = micros();
         }
@@ -162,8 +166,8 @@ defasagem = (tempoV1 - tempoI1);
 defasagem = abs(defasagem);
 if(defasagem < TV){ //Filtragem simples pra evitar dados esdruxulos por conta do estouro do timer que a função micros() usa. Basicamente diz que a defasagem so representa algo válido se for menor que o período.
 defasagem = defasagem*6.2832/TV;
-Fpot = sin(defasagem);
-FpotR = cos(defasagem);
+Fpot = cos(defasagem);
+FpotR = sin(defasagem);
 S = V*I;
 P = S*Fpot;
 Q = S*FpotR;
@@ -171,8 +175,17 @@ Q = S*FpotR;
 //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER QUALQUER UMA DESSAS GRANDEZAS NO SERIAL MONITOR
 if (currentMillis - previousMillis >= interval) {
   previousMillis = currentMillis;
-  Serial.print(P);
-  Serial.print(" ");
+  Serial.println('F');
+  Serial.println(V);
+  Serial.println(" ");
+  Serial.println(I);
+  Serial.println(" ");
+  Serial.println(Fpot);
+  Serial.println(" ");
+  Serial.println(P);
+  Serial.println(" ");
+  Serial.println(FV);
+  Serial.println(" ");
 }
 }
 }

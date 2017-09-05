@@ -11,6 +11,7 @@ void getData(){
   if(Serial.available()){
     while(Serial.read() != 'F');
     for(int i=0; i<4; i++){
+      while(!Serial.available());
       data[i]=Serial.parseFloat();
     }
     for(int i=0; i<4; i++){
