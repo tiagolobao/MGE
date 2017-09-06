@@ -21,6 +21,16 @@ void loop() {
  dados[2] = abs(emon1.powerFactor);       //recebe fator de potência
  dados[0] = emon1.Vrms;              //recebe Tensão rms
  dados[1] = emon1.Irms;         //recebe Corrente rms
+
+ /*
+ Comunicação com o ESP:
+ Letra de início das informações
+ + Valor tensão
+ + Valor corrente
+ + Valor fator de potência
+ + Valor potencia
+ 
+ */
  Serial.print('F');
  while (i < 4) {
    Serial.print(dados[i]);

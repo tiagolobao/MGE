@@ -2,11 +2,13 @@
 #include <ESP8266WebServer.h>
 
 ESP8266WebServer server(80);
-const char* ssid="Troco_senha_por_XBOX";
+const char* ssid="senha da wifi";
 const char* password="senha";
 String html,XML;
 float data[5];
 
+
+/* Obtenção das informações coletadas via serial */
 void getData(){
   if(Serial.available()){
     while(Serial.read() != 'F');
@@ -21,46 +23,36 @@ void getData(){
   }
 }
 
-
-String millis2time(){
-  String Time="";
-  unsigned long ss;
-  byte mm,hh;
-  ss=millis()/1000;
-  hh=ss/3600;
-  mm=(ss-hh*3600)/60;
-  ss=(ss-hh*3600)-mm*60;
-  if(hh<10)Time+="0";
-  Time+=(String)hh+":";
-  if(mm<10)Time+="0";
-  Time+=(String)mm+":";
-  if(ss<10)Time+="0";
-  Time+=(String)ss;
-  return Time;
-}
-
+/* METODO GET */
 void handleWebsite(){
   buildWebsite();
   server.send(200,"text/html",html);
 }
 
+/* METODO PUT (AJAX) */
 void handleXML(){
   buildXML();
   server.send(200,"text/xml",XML);
 }
 
 void setup() {
+  //Inicialização
   Serial.begin(115200);
   WiFi.begin(ssid,password);
   while(WiFi.status()!=WL_CONNECTED)delay(500);
   WiFi.mode(WIFI_STA);
+  //Printa no serial monitor o status e o IP
   Serial.println("\n\nBOOTING ESP8266 ...");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("Station IP address: ");
   Serial.println(WiFi.localIP());
+
+  //Configura os endereços para cada requisição
   server.on("/",handleWebsite);
   server.on("/xml",handleXML);
+
+  //Inicializa o servidor
   server.begin();
 }
 
