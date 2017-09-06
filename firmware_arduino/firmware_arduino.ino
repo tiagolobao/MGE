@@ -38,10 +38,9 @@ void setup() {
 
 pinMode(A0,INPUT);
 pinMode(A2,INPUT);
-Serial.begin(115200); 
+Serial.begin(115200);
 Vaux1 = analogRead(A0);
 Iaux1 = analogRead(A2);
-delay(1);
 if (analogRead(A0)>Vaux1){
   estadoV = 0;
   }
@@ -61,7 +60,6 @@ if (analogRead(A2)>Iaux1){
 }
 
 void loop() {
-delayMicroseconds(10);
 unsigned long currentMillis = millis();
 Vaux1 = analogRead(A0);
 Iaux1 = analogRead(A2);
@@ -80,13 +78,13 @@ Iaux = Iaux1*(5.0/1024.0);
     else{
     if(Vaux<Vp){
     Vp = Vp - 2.42;
-    Vp = Vp*(311.42/2.42);  
+    Vp = Vp*(311.42/2.42);
     V = Vp/1.4142;
     Vp = Vaux;
     //INSERIR AQUI O COMANDO PARA ENVIAR O VALOR DA TENSAO (V) PRO ESP ||||||||||||||||
     // //INSERIR AQUI COMANDOS DE SERIAL PRINT, SE DESEJAREM VER A TENSAO NO SERIAL MONITOR
     if (currentMillis - previousMillis >= interval) {
-      
+
 
     }
        if (contV==1){
